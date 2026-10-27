@@ -1,0 +1,761 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>GAMSAT Study Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap">
+<style>
+/* Layout: a sticky progress header over a setup panel, then one collapsible block per week of sessions. Phase colour marks the stage of preparation. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --fg: #171b26;
+  --muted: #5a6275;
+  --line: #d9dde6;
+  --accent: #1f4fd8;
+  --accent-ink: #ffffff;
+  --done: #17795a;
+  --warn-bg: #fff3d6;
+  --warn-fg: #6b4a00;
+  --p-diagnostic: #7a4fd0;
+  --p-foundation: #0d7f86;
+  --p-practice: #b56a00;
+  --p-simulation: #c23a5b;
+  --p-final: #3f6b3a;
+  --display: 'Sora', 'Segoe UI', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11141c; --surface: #191d28; --surface-2: #222736; --fg: #eceff6; --muted: #a2aabd; --line: #2e3446;
+    --accent: #7b9cff; --accent-ink: #0d1330; --done: #4fcf9f; --warn-bg: #3a2e10; --warn-fg: #ffd98a;
+    --p-diagnostic: #b495f5; --p-foundation: #4fcbd3; --p-practice: #f0a647; --p-simulation: #f07b97; --p-final: #8fcf86;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11141c; --surface: #191d28; --surface-2: #222736; --fg: #eceff6; --muted: #a2aabd; --line: #2e3446;
+  --accent: #7b9cff; --accent-ink: #0d1330; --done: #4fcf9f; --warn-bg: #3a2e10; --warn-fg: #ffd98a;
+  --p-diagnostic: #b495f5; --p-foundation: #4fcbd3; --p-practice: #f0a647; --p-simulation: #f07b97; --p-final: #8fcf86;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 860px; margin: 0 auto; display: flex; align-items: center; gap: 14px; padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
+.ring { flex: none; width: 56px; height: 56px; position: relative; }
+.ring svg { width: 56px; height: 56px; transform: rotate(-90deg); }
+.ring .track { stroke: var(--surface-2); }
+.ring .bar { stroke: var(--done); transition: stroke-dasharray .3s; }
+.ring span { position: absolute; inset: 0; display: grid; place-items: center; font: 500 13px var(--mono); }
+.top h1 { font-size: 18px; letter-spacing: -.01em; }
+.stats { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
+.top-in > div:nth-child(2) { flex: 1 1 0; min-width: 0; }
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 500; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.armed { background: var(--p-simulation); color: #fff; border-color: var(--p-simulation); }
+
+.lede { margin: 20px 0 14px; color: var(--muted); max-width: 62ch; }
+.setup { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0; }
+.setup > summary { list-style: none; cursor: pointer; padding: 14px 16px; font: 600 15px var(--display); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.setup > summary::-webkit-details-marker { display: none; }
+.setup > summary small { font: 400 13px var(--body); color: var(--muted); }
+.setup-body { padding: 4px 16px 16px; display: grid; gap: 18px; }
+.field > label, .field > .lab { display: block; font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
+.seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.seg label { position: relative; display: block; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; background: var(--bg); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg input:checked + .seg-in { color: var(--fg); }
+.seg label:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; background: var(--surface); }
+.seg label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.seg b { display: block; font: 600 14px var(--display); }
+.seg span.d { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 14px; }
+.row .field { flex: 1 1 170px; min-width: 0; }
+input[type=date], input[type=number], select { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-height: 38px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; background: var(--bg); cursor: pointer; }
+.chip input:checked + span { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.chip input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.note { background: var(--warn-bg); color: var(--warn-fg); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+.summary { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.summary b { font-weight: 600; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 18px 0 10px; font-size: 13px; color: var(--muted); }
+.legend i, .tag i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+.ph-Diagnostic { --pc: var(--p-diagnostic); } .ph-Foundation { --pc: var(--p-foundation); } .ph-Practice { --pc: var(--p-practice); } .ph-Simulation { --pc: var(--p-simulation); } .ph-Final { --pc: var(--p-final); }
+.legend i, .tag i { background: var(--pc, var(--muted)); }
+
+.week { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; }
+.week > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.week > summary::-webkit-details-marker { display: none; }
+.week > summary::after { content: "+"; margin-left: auto; font: 500 18px var(--mono); color: var(--muted); }
+.week[open] > summary::after { content: "\2212"; }
+.week h3 { font-size: 15px; }
+.week .when { font: 400 13px var(--mono); color: var(--muted); }
+.week .count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.week.complete h3::after { content: " \2713"; color: var(--done); }
+.week.current { border-color: var(--accent); }
+.sess { border-top: 1px solid var(--line); padding: 12px 16px; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 4px 12px; }
+.date { font: 500 12px var(--mono); color: var(--muted); text-align: center; line-height: 1.25; padding-top: 2px; }
+.date b { display: block; font: 600 20px var(--display); color: var(--fg); }
+.sess.done .date b { color: var(--done); }
+.s-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.s-head h4 { margin: 0; font: 600 15px var(--display); }
+.tag { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.pill { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
+.pill.test { background: var(--p-simulation); color: #fff; }
+.tasks { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.tasks label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; cursor: pointer; align-items: start; }
+.tasks input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--done); }
+.tasks input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+.s-foot { margin-top: 8px; display: flex; gap: 10px; align-items: center; }
+.link { background: none; border: 0; padding: 0; color: var(--muted); font-size: 13px; text-decoration: underline; }
+.sess.skipped { opacity: .55; }
+.sess.skipped .tasks { display: none; }
+.foot { margin-top: 28px; color: var(--muted); font-size: 13px; max-width: 64ch; }
+@media (max-width: 520px) {
+  .sess { grid-template-columns: 44px minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .ring .bar { transition: none; } }
+</style>
+
+<div class="top"><div class="top-in">
+  <div class="ring" aria-hidden="true"><svg viewBox="0 0 56 56"><circle class="track" cx="28" cy="28" r="23" fill="none" stroke-width="6"/><circle class="bar" id="bar" cx="28" cy="28" r="23" fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 145"/></svg><span id="pct">0%</span></div>
+  <div><h1>GAMSAT Study Planner</h1><div class="stats" id="stats" aria-live="polite"></div></div>
+</div></div>
+
+<div class="wrap">
+  <p class="lede">Pick the plan that matches your degree, set the number of weeks you have, and tick off each task as you finish it. Change any setting at any time. Your ticks stay in place. Week 1 starts with the Diagnostic Test in Part 4 of the book, so take it first and use its score map to choose your weak areas below.</p>
+
+  <div class="tools">
+    <button class="btn primary" id="today" type="button">Jump to today</button>
+    <button class="btn" id="reset" type="button">Reset progress</button>
+  </div>
+
+  <details class="setup" id="setup" open>
+    <summary>Your plan <small id="setup-sum"></small></summary>
+    <div class="setup-body">
+      <div class="field">
+        <span class="lab">Plan</span>
+        <div class="seg" id="track-seg"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="weeks">Weeks to study</label><select id="weeks"></select></div>
+        <div class="field"><label for="start">Start date</label><input type="date" id="start"></div>
+        <div class="field"><label for="exam">Sitting date (optional)</label><input type="date" id="exam"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="hpw">Hours you can study each week</label><input type="number" id="hpw" min="3" max="40" step="0.5" inputmode="decimal" placeholder="For example 10"></div>
+        <div class="field" style="display:flex;align-items:flex-end"><button class="btn" id="fit" type="button" hidden>Fit my hours</button></div>
+      </div>
+      <div class="field">
+        <span class="lab">Add extra practice where you are weak</span>
+        <div class="chips" id="focus"></div>
+        <div class="hint">Choose the areas where you scored under 60% on the Diagnostic Test. Each area adds two 2-hour boost sessions, after your Practice Test 1 and Practice Test 2 reviews.</div>
+      </div>
+      <div id="warn" class="note" hidden></div>
+      <div class="summary" id="summary"></div>
+    </div>
+  </details>
+
+  <div class="legend" id="legend"></div>
+  <div id="weeks-out"></div>
+  <p class="foot">The plan uses the chapters and practice tests in this book. Practice Tests 6 to 10 (Science) and 7 to 10 (Arts and humanities) are spare tests for extra volume. Confirm your sitting date, fees and ID rules with ACER, because they change each year. Your progress is saved in this browser only.</p>
+</div>
+
+<script>(function (root) {
+  'use strict';
+
+  var CH = {
+    1: 'The GAMSAT at a Glance',
+    2: 'Registering, Applying and Test Day',
+    3: 'Section 1: Reading and Reasoning Passages',
+    4: 'Section 1: Visual Material and Pacing',
+    5: 'Section 2: Task A, the Socio-Cultural Essay',
+    6: 'Section 2: Task B, the Personal and Social Essay',
+    7: 'Biology: Cells and Membranes',
+    8: 'Biology: Genetics and Molecular Biology',
+    9: 'Biology: Biochemistry and Metabolism',
+    10: 'Biology: Human Physiology, Control and Movement',
+    11: 'Biology: Human Physiology, Transport, Defence and Maintenance',
+    12: 'Biology: Evolution, Ecology and Microbiology',
+    13: 'Chemistry: Atoms, Bonding and Periodic Trends',
+    14: 'Chemistry: Stoichiometry, Solutions and Gases',
+    15: 'Chemistry: Acids, Bases and Equilibrium',
+    16: 'Chemistry: Thermodynamics, Kinetics and Redox',
+    17: 'Chemistry: Organic Structure and Stereochemistry',
+    18: 'Chemistry: Organic Reactions and Mechanisms',
+    19: 'Chemistry: Spectroscopy, Biomolecules and Lab Techniques',
+    20: 'Physics: Mechanics',
+    21: 'Physics: Electricity and Magnetism',
+    22: 'Physics: Waves, Sound, Light and Optics',
+    23: 'Physics: Fluids, Heat and Atomic Physics',
+    24: 'Quantitative Skills Without a Calculator'
+  };
+  function chap(n) { return 'Chapter ' + n + ': ' + CH[n]; }
+
+  var AREAS = {
+    BIO: { label: 'Biology', chapters: '7 to 12' },
+    CHEM: { label: 'Chemistry', chapters: '13 to 19' },
+    PHYS: { label: 'Physics', chapters: '20 to 23' },
+    S1: { label: 'Section 1', chapters: '3 and 4' },
+    S2: { label: 'Section 2', chapters: '5 and 6' },
+    QUANT: { label: 'Quantitative skills', chapters: '24' }
+  };
+
+  // ---- session builders ----
+  function S(p, key, phase, area, title, hrs, tasks, extra) {
+    var o = { id: p + '-' + key, phase: phase, area: area, title: title, hrs: hrs, tasks: tasks };
+    if (extra) for (var k in extra) o[k] = extra[k];
+    return o;
+  }
+  function read(p, key, phase, n, hrs, area, note) {
+    var t = ['Read ' + chap(n), 'Work every question in the chapter, including More Worked Questions, before you read the answers', 'Log each miss in your error log with its error type'];
+    if (note) t.splice(1, 0, note);
+    return S(p, key, phase, area, 'Chapter ' + n + ': ' + CH[n].replace(/^[A-Za-z]+: /, ''), hrs, t, { chapter: n });
+  }
+  function recall(p, key, phase, area, label, chs, hrs) {
+    return S(p, key, phase, area, 'Recall: ' + label, hrs, [
+      'Close the book and write down everything you remember from ' + chs,
+      'Check your notes against the chapters and mark what you missed',
+      'Redo the questions you got wrong, then update the error log'
+    ]);
+  }
+  function s1set(p, key, phase, label, hrs) {
+    return S(p, key, phase, 'S1', 'Section 1 set: ' + label, hrs, [
+      'Do a timed set: two passages, one visual item and one proverb or opinion set, at 97 seconds per question',
+      'Say the type of each question before you read the options (detail, inference, function, global)',
+      'Log each miss and name the line of evidence you overlooked'
+    ]);
+  }
+  var s2n = {};
+  function s2(p, key, phase, testNo, hrs, label) {
+    return S(p, key, phase, 'S2', label || ('Section 2: Test ' + testNo + ' prompts'), hrs, [
+      'Write Task A and Task B from the Practice Test ' + testNo + ' prompts, 30 minutes each',
+      'Compare each essay with the answer-structure outline for that prompt and list what you missed',
+      'Rewrite your weakest paragraph with a clearer link back to the prompt'
+    ]);
+  }
+  function s3set(p, key, phase, label, hrs) {
+    return S(p, key, phase, 'MIX', 'Section 3 set: ' + label, hrs, [
+      'Build a timed set of 20 questions from the chapters named above, at 120 seconds per question',
+      'Flag any question that takes more than two minutes, guess and move on',
+      'Log each miss and sort it as a knowledge gap, reading slip, arithmetic slip or timing problem'
+    ]);
+  }
+  function drill(p, key, phase, hrs) {
+    return S(p, key, phase, 'REVIEW', 'Targeted drill on your error log', hrs, [
+      'Choose the three topics that appear most often in the error log',
+      'Reread those chapters’ Going Deeper sections and redo the missed questions without notes',
+      'Write the rule behind each miss in one line on a revision sheet'
+    ]);
+  }
+  function test(p, key, phase, n, note) {
+    var t = ['Sit Practice Test ' + n + ' (Sections 1 and 3) in one session with the real timings and a 30-minute break', 'Mark the paper and record your Section 1 and Section 3 scores'];
+    if (note) t.unshift(note);
+    return S(p, key, phase, 'TEST', 'Practice Test ' + n + ': Sections 1 and 3', 4.5, t, { test: n });
+  }
+  function review(p, key, phase, n, hrs) {
+    return S(p, key, phase, 'REVIEW', 'Review Practice Test ' + n, hrs || 2.5, [
+      'Review every wrong answer and every question you guessed',
+      'Add each miss to the error log and tag its error type',
+      'Pick the three topics you will drill next'
+    ], { reviewOf: n });
+  }
+
+  function diagTest(p, key, note) {
+    return S(p, key, 'Diagnostic', 'TEST', 'Diagnostic Test: 100 questions', 3.5, [
+      note,
+      'Sit the Diagnostic Test in Part 4 in two blocks: Section 1 (Questions 1 to 45, about 73 minutes), a break, then Section 3 (Questions 46 to 100, about 110 minutes). Use no calculator',
+      'Mark it with the answers and count every guess as wrong'
+    ], { diag: true });
+  }
+  function diagReview(p, key, hrs) {
+    return S(p, key, 'Diagnostic', 'REVIEW', 'Score and review the Diagnostic Test', hrs || 2.5, [
+      'Fill in the score map in Using Your Diagnostic Results, by chapter and by area',
+      'Add each miss to the error log and tag its error type',
+      'Mark any area under 60% for a boost, and pick the three chapters you will read first'
+    ], { reviewOf: 0 });
+  }
+
+  // ---- Science track ----
+  function scienceSessions() {
+    var p = 'sci';
+    return [
+      S(p, 'd1', 'Diagnostic', 'PLAN', 'Know the exam and set up your error log', 3, [
+        'Read ' + chap(1) + ' and ' + chap(2),
+        'Set up the error log with columns for question, error type and rule',
+        'Check registration dates, fees and ID rules on ACER’s site, because they change each year'
+      ]),
+      diagTest(p, 'd2', 'Treat the score as a baseline, so expect to find gaps'),
+      diagReview(p, 'rv1'),
+      s2(p, 'd4', 'Diagnostic', 1, 2, 'Section 2 baseline: Test 1 prompts'),
+      read(p, 'f1', 'Foundation', 3, 2.5, 'S1'),
+      read(p, 'f2', 'Foundation', 4, 2.5, 'S1'),
+      read(p, 'f3', 'Foundation', 5, 2.5, 'S2'),
+      read(p, 'f4', 'Foundation', 6, 2.5, 'S2'),
+      read(p, 'f5', 'Foundation', 13, 3, 'CHEM'),
+      read(p, 'f6', 'Foundation', 14, 3, 'CHEM'),
+      read(p, 'f7', 'Foundation', 15, 3, 'CHEM'),
+      s1set(p, 'f8', 'Foundation', 'passages and proverbs (Chapter 3)', 2),
+      read(p, 'f9', 'Foundation', 16, 3, 'CHEM'),
+      read(p, 'f10', 'Foundation', 17, 3, 'CHEM'),
+      read(p, 'f11', 'Foundation', 18, 3, 'CHEM'),
+      read(p, 'f12', 'Foundation', 19, 3, 'CHEM'),
+      s2(p, 'f13', 'Foundation', 2, 2.5),
+      read(p, 'f14', 'Foundation', 20, 3, 'PHYS'),
+      read(p, 'f15', 'Foundation', 21, 3, 'PHYS'),
+      read(p, 'f16', 'Foundation', 22, 3, 'PHYS'),
+      read(p, 'f17', 'Foundation', 23, 3, 'PHYS'),
+      read(p, 'f18', 'Foundation', 24, 2.5, 'QUANT', 'Do the calculator-free arithmetic drills again, 10 minutes a day this week'),
+      s1set(p, 'f19', 'Foundation', 'visual items and pacing (Chapter 4)', 2),
+      read(p, 'f20', 'Foundation', 7, 2.5, 'BIO'),
+      read(p, 'f21', 'Foundation', 8, 2.5, 'BIO'),
+      read(p, 'f22', 'Foundation', 9, 2.5, 'BIO'),
+      read(p, 'f23', 'Foundation', 10, 2.5, 'BIO'),
+      read(p, 'f24', 'Foundation', 11, 2.5, 'BIO'),
+      read(p, 'f25', 'Foundation', 12, 2.5, 'BIO'),
+      S(p, 'f26', 'Foundation', 'REVIEW', 'Foundation check', 2, [
+        'Read your whole error log from the start',
+        'Group the entries by chapter and mark the three weakest chapters',
+        'Plan your drill topics for the next two weeks'
+      ]),
+      s3set(p, 'p1', 'Practice', 'chemistry and physics (Chapters 13 to 23)', 2.5),
+      s1set(p, 'p2', 'Practice', 'mixed types', 2.5),
+      s2(p, 'p3', 'Practice', 3, 2.5),
+      test(p, 'p4', 'Practice', 1),
+      review(p, 'rv2', 'Practice', 1),
+      drill(p, 'p5', 'Practice', 2.5),
+      s3set(p, 'p6', 'Practice', 'biology and chemistry (Chapters 7 to 19)', 2.5),
+      s1set(p, 'p7', 'Practice', 'timed, with checkpoints at minutes 23, 48, 71 and 95', 2.5),
+      s2(p, 'p8', 'Practice', 4, 2.5),
+      s3set(p, 'p9', 'Practice', 'physics and calculator-free arithmetic (Chapters 20 to 24)', 2.5),
+      test(p, 'p10', 'Practice', 2),
+      review(p, 'rv3', 'Practice', 2),
+      drill(p, 'p11', 'Practice', 2.5),
+      s3set(p, 'p12', 'Practice', 'all three sciences', 2.5),
+      s1set(p, 'p13', 'Practice', 'mixed types', 2.5),
+      s2(p, 'p14', 'Practice', 5, 2.5),
+      test(p, 'p15', 'Practice', 3),
+      review(p, 'rv4', 'Practice', 3),
+      drill(p, 'p16', 'Practice', 2.5),
+      s3set(p, 'p17', 'Practice', 'all three sciences', 2.5),
+      s2(p, 'p18', 'Practice', 6, 2.5),
+      test(p, 't1', 'Simulation', 4, 'Start at the time your real sitting starts'),
+      review(p, 'rv5', 'Simulation', 4),
+      test(p, 't2', 'Simulation', 5, 'Start at the time your real sitting starts'),
+      review(p, 'rv6', 'Simulation', 5),
+      S(p, 'z1', 'Final review', 'FINAL', 'Error log and formula review', 2, [
+        'Read the whole error log once more',
+        'Rewrite the key equations from Chapters 20 to 24 from memory',
+        'Reread every Exam Trap box in Part 2'
+      ]),
+      S(p, 'z2', 'Final review', 'FINAL', 'Light practice and pacing check', 1.5, [
+        'Do one short timed Section 1 set to keep your reading speed',
+        'Say your pacing checkpoints out loud: minutes 23, 48, 71 and 95',
+        'Do not start new topics'
+      ]),
+      S(p, 'z3', 'Final review', 'FINAL', 'Test-day preparation', 1, [
+        'Work through the test-day checklist in Chapter 26',
+        'Confirm your ID, travel plan and equipment, and leave the calculator at home',
+        'Sleep early and keep the evening quiet'
+      ])
+    ];
+  }
+
+  // ---- Arts and Humanities track ----
+  function artsSessions() {
+    var p = 'art';
+    return [
+      S(p, 'd1', 'Diagnostic', 'PLAN', 'Know the exam and set up your error log', 3, [
+        'Read ' + chap(1) + ' and ' + chap(2),
+        'Set up the error log with columns for question, error type and rule',
+        'Check registration dates, fees and ID rules on ACER’s site, because they change each year'
+      ]),
+      diagTest(p, 'd2', 'Treat the score as a baseline. A low Section 3 score at this point is normal and is information, not a verdict'),
+      diagReview(p, 'rv1', 3),
+      s2(p, 'd4', 'Diagnostic', 1, 2, 'Section 2 baseline: Test 1 prompts'),
+      read(p, 'f1', 'Foundation', 24, 4.5, 'QUANT', 'Learn the squares, roots and log values by heart and test yourself each day'),
+      read(p, 'f2', 'Foundation', 13, 4.5, 'CHEM'),
+      read(p, 'f3', 'Foundation', 14, 4.5, 'CHEM'),
+      recall(p, 'f4', 'Foundation', 'CHEM', 'Chapters 13 and 14', 'Chapters 13 and 14', 2),
+      s1set(p, 'f5', 'Foundation', 'passages and proverbs (Chapter 3)', 2),
+      read(p, 'f6', 'Foundation', 7, 4.5, 'BIO'),
+      read(p, 'f7', 'Foundation', 8, 4.5, 'BIO'),
+      read(p, 'f8', 'Foundation', 9, 4.5, 'BIO'),
+      recall(p, 'f9', 'Foundation', 'BIO', 'Chapters 7 to 9', 'Chapters 7 to 9', 2),
+      s2(p, 'f10', 'Foundation', 2, 2.5),
+      read(p, 'f11', 'Foundation', 15, 4.5, 'CHEM'),
+      read(p, 'f12', 'Foundation', 16, 4.5, 'CHEM'),
+      recall(p, 'f13', 'Foundation', 'CHEM', 'Chapters 15 and 16', 'Chapters 15 and 16', 2),
+      S(p, 'f14', 'Foundation', 'QUANT', 'Calculator-free drills', 1, [
+        'Do 20 arithmetic items from Chapter 24 without a calculator',
+        'Time yourself and aim for under 90 seconds each',
+        'Log each slip as an arithmetic error'
+      ]),
+      read(p, 'f15', 'Foundation', 10, 4.5, 'BIO'),
+      read(p, 'f16', 'Foundation', 11, 4.5, 'BIO'),
+      read(p, 'f17', 'Foundation', 12, 4.5, 'BIO'),
+      recall(p, 'f18', 'Foundation', 'BIO', 'Chapters 10 to 12', 'Chapters 10 to 12', 2),
+      s1set(p, 'f19', 'Foundation', 'visual items and pacing (Chapter 4)', 2),
+      read(p, 'f20', 'Foundation', 20, 4.5, 'PHYS'),
+      read(p, 'f21', 'Foundation', 21, 4.5, 'PHYS'),
+      read(p, 'f22', 'Foundation', 22, 4.5, 'PHYS'),
+      read(p, 'f23', 'Foundation', 23, 4.5, 'PHYS'),
+      recall(p, 'f24', 'Foundation', 'PHYS', 'Chapters 20 to 23', 'Chapters 20 to 23', 2),
+      s2(p, 'f25', 'Foundation', 3, 2.5),
+      read(p, 'f26', 'Foundation', 17, 4.5, 'CHEM'),
+      read(p, 'f27', 'Foundation', 18, 4.5, 'CHEM'),
+      read(p, 'f28', 'Foundation', 19, 4.5, 'CHEM'),
+      recall(p, 'f29', 'Foundation', 'CHEM', 'Chapters 17 to 19', 'Chapters 17 to 19', 2),
+      S(p, 'f30', 'Foundation', 'QUANT', 'Calculator-free drills', 1, [
+        'Do 20 arithmetic items from Chapter 24 without a calculator',
+        'Time yourself and aim for under 90 seconds each',
+        'Log each slip as an arithmetic error'
+      ]),
+      S(p, 'f31', 'Foundation', 'REVIEW', 'Foundation check', 2, [
+        'Read your whole error log from the start',
+        'Group the entries by chapter and mark the three weakest chapters',
+        'Plan your drill topics for the next two weeks'
+      ]),
+      s3set(p, 'p1', 'Practice', 'biology and chemistry (Chapters 7 to 19)', 3),
+      s1set(p, 'p2', 'Practice', 'mixed types', 2),
+      s2(p, 'p3', 'Practice', 4, 2.5),
+      test(p, 'p4', 'Practice', 1),
+      review(p, 'rv2', 'Practice', 1),
+      drill(p, 'p5', 'Practice', 3),
+      s3set(p, 'p6', 'Practice', 'physics and calculator-free arithmetic (Chapters 20 to 24)', 3),
+      s1set(p, 'p7', 'Practice', 'timed, with checkpoints at minutes 23, 48, 71 and 95', 2),
+      s2(p, 'p8', 'Practice', 5, 2.5),
+      test(p, 'p9', 'Practice', 2),
+      review(p, 'rv3', 'Practice', 2),
+      drill(p, 'p10', 'Practice', 3),
+      s3set(p, 'p11', 'Practice', 'all three sciences', 3),
+      s1set(p, 'p12', 'Practice', 'mixed types', 2),
+      s2(p, 'p13', 'Practice', 6, 2.5),
+      test(p, 'p14', 'Practice', 3),
+      review(p, 'rv4', 'Practice', 3),
+      drill(p, 'p15', 'Practice', 3),
+      s3set(p, 'p16', 'Practice', 'all three sciences', 3),
+      s1set(p, 'p17', 'Practice', 'mixed types', 2),
+      s2(p, 'p18', 'Practice', 7, 2.5),
+      test(p, 'p19', 'Practice', 4),
+      review(p, 'rv5', 'Practice', 4),
+      drill(p, 'p20', 'Practice', 3),
+      test(p, 't1', 'Simulation', 5, 'Start at the time your real sitting starts'),
+      review(p, 'rv6', 'Simulation', 5),
+      test(p, 't2', 'Simulation', 6, 'Start at the time your real sitting starts'),
+      review(p, 'rv7', 'Simulation', 6),
+      S(p, 'z1', 'Final review', 'FINAL', 'Error log and formula review', 2, [
+        'Read the whole error log once more',
+        'Rewrite the key equations from Chapters 20 to 24 from memory',
+        'Reread every Exam Trap box in Part 2'
+      ]),
+      S(p, 'z2', 'Final review', 'FINAL', 'Light practice and pacing check', 1.5, [
+        'Do one short timed Section 1 set to keep your reading speed',
+        'Say your pacing checkpoints out loud: minutes 23, 48, 71 and 95',
+        'Do not start new topics'
+      ]),
+      S(p, 'z3', 'Final review', 'FINAL', 'Test-day preparation', 1, [
+        'Work through the test-day checklist in Chapter 26',
+        'Confirm your ID, travel plan and equipment, and leave the calculator at home',
+        'Sleep early and keep the evening quiet'
+      ])
+    ];
+  }
+
+  var TRACKS = {
+    science: {
+      key: 'science', label: 'Science graduate', short: 'Science',
+      blurb: 'You have a recent science or health degree. Content review is quicker, and Sections 1 and 2 start early because they are skills you build.',
+      defaultWeeks: 12, minWeeks: 8, sessions: scienceSessions(), prefix: 'sci',
+      phaseText: {
+        'Diagnostic': 'Read Chapters 1 and 2. Sit the Diagnostic Test as a baseline and score it. Write one Section 2 pair from Test 1.',
+        'Foundation': 'Chapters 3 to 6 first. Then chemistry (13 to 19), physics (20 to 23), quantitative skills (24) and biology (7 to 12), with Section 1 and Section 2 work between them.',
+        'Practice': 'Timed mixed sets, a Section 2 pair every week, drills on the error log and Practice Tests 1 to 3 with a review after each.',
+        'Simulation': 'Practice Tests 4 and 5 at your real start time, each followed by a review.',
+        'Final review': 'Error log, equations and Exam Traps. A short timed set, the test-day checklist and an early night.'
+      }
+    },
+    arts: {
+      key: 'arts', label: 'Arts and humanities graduate', short: 'Arts and humanities',
+      blurb: 'Your degree built reading and writing skills. The plan starts science content from the ground up, builds one subject at a time and uses recall sessions to make it stick.',
+      defaultWeeks: 24, minWeeks: 16, sessions: artsSessions(), prefix: 'art',
+      phaseText: {
+        'Diagnostic': 'Read Chapters 1 and 2. Sit the Diagnostic Test as a baseline, and expect a low Section 3 score. Score it and write one Section 2 pair.',
+        'Foundation': 'Quantitative skills (24) first, then chemistry (13 to 16), biology (7 to 12), physics (20 to 23) and organic chemistry (17 to 19). Each cluster ends with a closed-book recall session. Section 1 and Section 2 stay in the schedule every week.',
+        'Practice': 'Timed mixed sets, a Section 2 pair every week, drills on the error log and Practice Tests 1 to 4 with a review after each.',
+        'Simulation': 'Practice Tests 5 and 6 at your real start time, each followed by a review.',
+        'Final review': 'Error log, equations and Exam Traps. A short timed set, the test-day checklist and an early night.'
+      }
+    }
+  };
+
+  function boost(track, areaKey, n) {
+    var a = AREAS[areaKey];
+    var p = TRACKS[track].prefix;
+    return S(p, 'b-' + areaKey.toLowerCase() + n, 'Practice', 'BOOST', 'Boost: ' + a.label + ' (' + n + ' of 2)', 2, [
+      'Reread the Going Deeper sections in Chapters ' + a.chapters,
+      'Redo every ' + a.label.toLowerCase() + ' question in your error log without notes',
+      'Write the rule behind each repeated miss in one line'
+    ], { boost: areaKey });
+  }
+
+  function schedule(trackKey, weeks, focus) {
+    var tr = TRACKS[trackKey];
+    var list = tr.sessions.slice();
+    focus = focus || [];
+    focus.forEach(function (a) {
+      [2, 3].forEach(function (rvN, i) {
+        var at = -1;
+        for (var j = 0; j < list.length; j++) if (list[j].id === tr.prefix + '-rv' + rvN) at = j;
+        if (at >= 0) {
+          var already = 0;
+          for (var m = at + 1; m < list.length && list[m].boost; m++) already++;
+          list.splice(at + 1 + already, 0, boost(trackKey, a, i + 1));
+        }
+      });
+    });
+    var total = 0;
+    list.forEach(function (s) { total += s.hrs; });
+    var perWeek = total / weeks;
+    var cum = 0;
+    var byWeek = [];
+    for (var w = 0; w < weeks; w++) byWeek.push([]);
+    list.forEach(function (s, idx) {
+      var mid = cum + s.hrs / 2;
+      var w2 = Math.min(weeks - 1, Math.floor(mid / perWeek));
+      cum += s.hrs;
+      s.week = w2;
+      byWeek[w2].push(s);
+    });
+    byWeek.forEach(function (g) {
+      g.forEach(function (s, j) { s.dayOffset = Math.min(6, Math.floor(j * 7 / g.length)); });
+    });
+    return { sessions: list, weeks: weeks, total: total, perWeek: perWeek, byWeek: byWeek, track: tr };
+  }
+
+  // rows for the printed book tables
+  function printRows(trackKey, weeks) {
+    var sch = schedule(trackKey, weeks, []);
+    var phases = ['Diagnostic', 'Foundation', 'Practice', 'Simulation', 'Final review'];
+    var rows = [];
+    phases.forEach(function (ph) {
+      var ws = [], tests = [];
+      sch.sessions.forEach(function (s) {
+        if (s.phase === ph) { ws.push(s.week + 1); if (s.diag) tests.push('Diagnostic Test (week ' + (s.week + 1) + ')'); else if (s.test) tests.push('Practice Test ' + s.test + ' (week ' + (s.week + 1) + ')'); }
+      });
+      if (!ws.length) return;
+      var lo = Math.min.apply(null, ws), hi = Math.max.apply(null, ws);
+      rows.push([lo === hi ? String(lo) : lo + ' to ' + hi, ph, sch.track.phaseText[ph], tests.length ? tests.join('; ') : 'None']);
+    });
+    return { rows: rows, total: sch.total, perWeek: sch.perWeek, weeks: weeks };
+  }
+
+  root.PlanCore = { CH: CH, AREAS: AREAS, TRACKS: TRACKS, schedule: schedule, printRows: printRows };
+  if (typeof module !== 'undefined' && module.exports) module.exports = root.PlanCore;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+(function () {
+  var PC = window.PlanCore;
+  var KEY = 'gamsat-planner-v1';
+  var PHASES = ['Diagnostic', 'Foundation', 'Practice', 'Simulation', 'Final review'];
+  var PHCLASS = { 'Diagnostic': 'ph-Diagnostic', 'Foundation': 'ph-Foundation', 'Practice': 'ph-Practice', 'Simulation': 'ph-Simulation', 'Final review': 'ph-Final' };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function todayISO() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function parse(iso) { var p = iso.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function iso(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function addDays(d, n) { var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+  function fmt(d, o) { return d.toLocaleDateString('en-GB', o); }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function h(n) { return (Math.round(n * 10) / 10).toString(); }
+
+  var state = { track: 'science', weeks: { science: 12, arts: 24 }, start: todayISO(), exam: '', hpw: '', focus: [], checked: {}, skipped: {}, open: {} };
+  try { var saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) for (var k in saved) state[k] = saved[k]; } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  function weeksNow() { return state.weeks[state.track]; }
+  function startDate() {
+    if (state.exam) return addDays(parse(state.exam), -7 * weeksNow());
+    return parse(state.start);
+  }
+  function current() { return PC.schedule(state.track, weeksNow(), state.focus); }
+
+  // ---- static pieces ----
+  function buildStatic() {
+    var seg = '';
+    Object.keys(PC.TRACKS).forEach(function (key) {
+      var t = PC.TRACKS[key];
+      seg += '<label><input type="radio" name="track" value="' + key + '"><span class="seg-in"><b>' + esc(t.label) + '</b><span class="d">' + esc(t.blurb) + '</span></span></label>';
+    });
+    $('track-seg').innerHTML = seg;
+    var opts = '';
+    for (var w = 8; w <= 30; w++) opts += '<option value="' + w + '">' + w + ' weeks</option>';
+    $('weeks').innerHTML = opts;
+    var ch = '';
+    Object.keys(PC.AREAS).forEach(function (a) {
+      ch += '<label class="chip"><input type="checkbox" value="' + a + '"><span>' + esc(PC.AREAS[a].label) + '</span></label>';
+    });
+    $('focus').innerHTML = ch;
+    $('legend').innerHTML = PHASES.map(function (p) { return '<span class="' + PHCLASS[p] + '"><i></i>' + p + '</span>'; }).join('');
+  }
+
+  function syncSetup(sch) {
+    var radios = document.querySelectorAll('input[name=track]');
+    for (var i = 0; i < radios.length; i++) radios[i].checked = radios[i].value === state.track;
+    $('weeks').value = String(weeksNow());
+    $('exam').value = state.exam || '';
+    $('start').value = state.exam ? iso(startDate()) : state.start;
+    $('start').disabled = !!state.exam;
+    $('hpw').value = state.hpw || '';
+    var boxes = document.querySelectorAll('#focus input');
+    for (var j = 0; j < boxes.length; j++) boxes[j].checked = state.focus.indexOf(boxes[j].value) >= 0;
+    var tr = PC.TRACKS[state.track];
+    var end = addDays(startDate(), weeksNow() * 7 - 1);
+    $('summary').innerHTML = '<b>' + h(sch.total) + ' hours</b> over <b>' + weeksNow() + ' weeks</b>, about <b>' + h(sch.perWeek) + ' hours a week</b>. First day ' + fmt(startDate(), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + ', last day ' + fmt(end, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + '.';
+    $('setup-sum').textContent = tr.short + ', ' + weeksNow() + ' weeks';
+    var warn = $('warn');
+    if (weeksNow() < tr.minWeeks) { warn.hidden = false; warn.textContent = 'This is shorter than the ' + tr.minWeeks + ' weeks suggested for this plan. Expect about ' + h(sch.perWeek) + ' hours a week. Add weeks or fewer boost areas if that is too much.'; }
+    else warn.hidden = true;
+    if (state.exam && iso(startDate()) < todayISO()) { warn.hidden = false; warn.textContent = 'With this sitting date, the plan would have started on ' + fmt(startDate(), { day: 'numeric', month: 'short', year: 'numeric' }) + '. Choose fewer weeks, or clear the sitting date and set your own start date.'; }
+    var need = null;
+    var hp = parseFloat(state.hpw);
+    if (hp > 0) { need = Math.max(8, Math.min(30, Math.ceil(sch.total / hp))); }
+    var fit = $('fit');
+    if (need && need !== weeksNow()) { fit.hidden = false; fit.textContent = 'Use ' + need + ' weeks'; fit.dataset.weeks = need; }
+    else fit.hidden = true;
+  }
+
+  // ---- plan ----
+  function render() {
+    var sch = current();
+    syncSetup(sch);
+    var start = startDate();
+    var today = todayISO();
+    var totalH = 0, doneH = 0, totalS = 0, doneS = 0, totalT = 0, doneT = 0;
+    var html = '';
+    var firstOpenWeek = -1, curWeek = -1;
+    sch.byWeek.forEach(function (group, w) {
+      var wkStart = addDays(start, w * 7), wkEnd = addDays(wkStart, 6);
+      var isCur = today >= iso(wkStart) && today <= iso(wkEnd);
+      if (isCur) curWeek = w;
+    });
+    sch.byWeek.forEach(function (group, w) {
+      var wkStart = addDays(start, w * 7), wkEnd = addDays(wkStart, 6);
+      var wDone = 0, wCount = 0, wHrs = 0, body = '';
+      group.forEach(function (s) {
+        var skipped = !!state.skipped[s.id];
+        var date = addDays(wkStart, s.dayOffset);
+        var nTasks = s.tasks.length, nDone = 0;
+        s.tasks.forEach(function (t, i) { if (state.checked[s.id + ':' + i]) nDone++; });
+        var complete = nDone === nTasks;
+        if (!skipped) {
+          wCount++; wHrs += s.hrs; totalH += s.hrs; totalS++; totalT += nTasks; doneT += nDone;
+          if (complete) { wDone++; doneH += s.hrs; doneS++; }
+        }
+        var ph = PHCLASS[s.phase];
+        var isToday = iso(date) === today && !complete && !skipped;
+        var pills = '';
+        if (isToday) pills += '<span class="pill">Today</span>';
+        if (s.diag) pills += '<span class="pill test">Diagnostic</span>';
+        if (s.test) pills += '<span class="pill test">Test ' + s.test + '</span>';
+        var tasks = '';
+        s.tasks.forEach(function (t, i) {
+          var id = s.id + ':' + i;
+          tasks += '<li><label><input type="checkbox" data-id="' + id + '"' + (state.checked[id] ? ' checked' : '') + '><span>' + esc(t) + '</span></label></li>';
+        });
+        body += '<div class="sess ' + (complete && !skipped ? 'done ' : '') + (skipped ? 'skipped' : '') + '" data-date="' + iso(date) + '">' +
+          '<div class="date">' + fmt(date, { weekday: 'short' }) + '<b>' + date.getDate() + '</b>' + fmt(date, { month: 'short' }) + '</div>' +
+          '<div><div class="s-head"><h4>' + esc(s.title) + '</h4>' + pills + '<span class="tag ' + ph + '"><i></i>' + s.phase + '</span><span class="tag">' + h(s.hrs) + ' h</span></div>' +
+          '<ul class="tasks">' + tasks + '</ul>' +
+          '<div class="s-foot"><button type="button" class="link" data-skip="' + s.id + '">' + (skipped ? 'Restore this session' : 'Skip: I already know this') + '</button></div></div></div>';
+      });
+      var isCur = w === curWeek;
+      var complete = wCount > 0 && wDone === wCount;
+      var open = state.open[w] !== undefined ? state.open[w] : (curWeek >= 0 ? isCur : w === 0);
+      html += '<details class="week' + (complete ? ' complete' : '') + (isCur ? ' current' : '') + '" data-week="' + w + '"' + (open ? ' open' : '') + '>' +
+        '<summary><h3>Week ' + (w + 1) + '</h3><span class="when">' + fmt(wkStart, { day: 'numeric', month: 'short' }) + ' to ' + fmt(wkEnd, { day: 'numeric', month: 'short' }) + '</span><span class="count">' + wDone + ' of ' + wCount + ' sessions, ' + h(wHrs) + ' h</span></summary>' + body + '</details>';
+    });
+    $('weeks-out').innerHTML = html;
+    var pct = totalH ? Math.round(doneH / totalH * 100) : 0;
+    $('pct').textContent = pct + '%';
+    $('bar').setAttribute('stroke-dasharray', (pct / 100 * 144.5).toFixed(1) + ' 145');
+    $('stats').textContent = doneS + ' of ' + totalS + ' sessions, ' + doneT + ' of ' + totalT + ' tasks, ' + h(doneH) + ' of ' + h(totalH) + ' hours';
+  }
+
+  function rerender(focusId) {
+    render();
+    if (focusId) { var el = document.querySelector('[data-id="' + focusId + '"]'); if (el) el.focus(); }
+  }
+
+  // ---- events ----
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.name === 'track') { state.track = t.value; save(); render(); return; }
+    if (t.id === 'weeks') { state.weeks[state.track] = +t.value; state.open = {}; save(); render(); return; }
+    if (t.id === 'start') { if (t.value) { state.start = t.value; save(); render(); } return; }
+    if (t.id === 'exam') { state.exam = t.value; state.open = {}; save(); render(); return; }
+    if (t.id === 'hpw') { state.hpw = t.value; save(); render(); return; }
+    if (t.closest && t.closest('#focus')) {
+      var vals = [];
+      document.querySelectorAll('#focus input').forEach(function (b) { if (b.checked) vals.push(b.value); });
+      state.focus = vals; save(); render(); return;
+    }
+    if (t.dataset && t.dataset.id) {
+      if (t.checked) state.checked[t.dataset.id] = true; else delete state.checked[t.dataset.id];
+      save(); rerender(t.dataset.id);
+    }
+  });
+  document.addEventListener('input', function (e) { if (e.target.id === 'hpw') { state.hpw = e.target.value; save(); syncSetup(current()); } });
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t.dataset && t.dataset.skip) { var id = t.dataset.skip; if (state.skipped[id]) delete state.skipped[id]; else state.skipped[id] = true; save(); render(); return; }
+    if (t.id === 'fit') { state.weeks[state.track] = +t.dataset.weeks; state.open = {}; save(); render(); return; }
+    if (t.id === 'today') {
+      var cur = document.querySelector('.week.current');
+      if (!cur) { var first = document.querySelector('.week'); if (first) { first.open = true; first.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
+      cur.open = true;
+      var s = cur.querySelector('.sess:not(.done):not(.skipped)') || cur;
+      s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    if (t.id === 'reset') {
+      if (!t.classList.contains('armed')) {
+        t.classList.add('armed'); t.textContent = 'Tap again to erase ticks';
+        setTimeout(function () { t.classList.remove('armed'); t.textContent = 'Reset progress'; }, 4000);
+      } else {
+        state.checked = {}; state.skipped = {}; state.open = {}; save();
+        t.classList.remove('armed'); t.textContent = 'Reset progress'; render();
+      }
+    }
+  });
+  document.addEventListener('toggle', function (e) {
+    var d = e.target;
+    if (d.classList && d.classList.contains('week')) { state.open[d.dataset.week] = d.open; save(); }
+  }, true);
+
+  buildStatic();
+  render();
+})();
+</script>
+
+</body></html>
